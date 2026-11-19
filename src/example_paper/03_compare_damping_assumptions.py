@@ -73,10 +73,17 @@ print(f"\nTrue mode shapes (reduced normalization):")
 print(mode_shapes_norm)
 
 # Check if damping is proportional
+# For proportional damping, all components of a mode shape must have the same phase
+# This means phase differences between coordinates should be 0° (same sign) or 180° (opposite sign)
 mode_phases = np.angle(mode_shapes_true)
 phase_diff = np.abs(mode_phases[0, :] - mode_phases[1, :])
 phase_diff = np.minimum(phase_diff, 2*np.pi - phase_diff)  # wrap to [0, pi]
-is_proportional = np.allclose(phase_diff, 0.0, atol=0.01)
+
+# Check if phases are close to 0° or 180° (real mode shapes)
+is_zero = np.isclose(phase_diff, 0.0, atol=0.01)
+is_pi = np.isclose(phase_diff, np.pi, atol=0.01)
+is_proportional = np.all(is_zero | is_pi)
+
 print(f"\nProportional damping check:")
 print(f"  Phase differences: {np.rad2deg(phase_diff)} degrees")
 print(f"  System is {'PROPORTIONAL' if is_proportional else 'NON-PROPORTIONAL'}")
