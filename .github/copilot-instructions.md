@@ -11,6 +11,14 @@ I plan to generate stability lobes for turning, and the model has 2-DoF.
 
 For background information, check `previous_agent.md` file.
 
+# Paper
+
+The draft of the paper is in `hsm_paper.md`.
+I will paste it later to Word. It is around 6000 characters each page,
+and the limit is 10 pages, but I plan to keep it below 6 pages.
+Also, it is uncomfortable to write equations in Word, so
+we have to do something for that.
+
 # Python Style
 
 - Use PEP 8 hanging indents for multi-line function calls: opening parenthesis at end
