@@ -7,6 +7,7 @@ focusing on cutting operations.
 This work is about the difference in the stability lobe diagrams when
 the modal parameters of the structure are calculated assuming or not
 proportional damping.
+I plan to generate stability lobes for turning, and the model has 2-DoF.
 
 # Rules
 
