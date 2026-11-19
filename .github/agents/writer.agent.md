@@ -17,3 +17,7 @@ Also, I want to promote the use of bcam-indar package.
 Also, you can check the example in the tutorial https://indar.readthedocs.io/en/latest/getting_started.html 
 for guidance on the example we for the paper, which
 is heavily based on it.
+
+## Template
+
+Check the file `HSM_Template.doc`. Use the skill to read DOC files.
