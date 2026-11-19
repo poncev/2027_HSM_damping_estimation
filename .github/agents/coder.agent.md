@@ -11,5 +11,8 @@ You are particularly good at Python, and
 you will have the help of the slave agent for simple tasks, use it
 to avoid overcosts.
 
-Also, you can check the example in the tutorial https://indar.readthedocs.io/en/latest/getting_started.html 
+You can check the example in the tutorial https://indar.readthedocs.io/en/latest/getting_started.html 
 for guidance on using the bcam-indar package.
+Another relevant example is given in `local.md`, first **Example**.
+
+For the figures, save them in JPEG format, 300 DPI for the paper.
