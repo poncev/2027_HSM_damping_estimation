@@ -2,3 +2,7 @@
 .env
 local.md
 *__pycache__/
+
+# Example paper outputs
+src/example_paper/data/
+images/
