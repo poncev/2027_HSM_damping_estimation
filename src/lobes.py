@@ -1,19 +1,19 @@
 import numpy as np
+import scipy.linalg
 import scipy.optimize
 import matplotlib.pyplot as plt
-from bcam.indar.ema.mechanical import system_to_modal
 
 
 def _build_modal_system(system):
     """Return (modal_system, direction) where modal_system = [I, C_tilde, K_tilde]
-    and direction = Phi^T e1 (cutting force in modal coords)."""
+    and direction = Phi_n^T e1 (cutting force in modal coords).
+    Mode shapes from undamped eigenproblem K phi = w^2 M phi -> guaranteed real."""
     M, C, K = system
-    Phi, _ = system_to_modal(M, C, K)
-    # mass-normalise: Phi_n such that Phi_n^T M Phi_n = I
-    scale = np.sqrt(np.diag(Phi.T @ M @ Phi))
-    Phi_n = Phi / scale
+    # eigh solves K Phi = M Phi diag(w^2), returns real Phi with Phi^T M Phi = I
+    _, Phi_n = scipy.linalg.eigh(K, M)
     C_tilde = Phi_n.T @ C @ Phi_n
-    K_tilde = Phi_n.T @ K @ Phi_n
+    K_tilde = np.diag(Phi_n.T @ K @ Phi_n)  # exactly diagonal by construction
+    K_tilde = np.diag(np.real(K_tilde))
     modal_system = [np.eye(2), C_tilde, K_tilde]
     direction = Phi_n.T @ np.array([1.0, 0.0])  # e1 in modal coords
     return modal_system, direction
