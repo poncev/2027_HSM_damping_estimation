@@ -6,11 +6,12 @@ exact poles and amplitudes (no identification errors, no noise). The only source
 of error is the mathematical constraint that mode shapes must be real.
 
 Steps:
-1. Compute exact modal parameters from true M, C, K
-2. Fit RealModes (proportional assumption) with exact poles/amplitudes
-3. Fit ComplexModes (non-proportional) with exact poles/amplitudes
-4. Reconstruct M, C, K from both fitted mode shapes
-5. Compare errors and stability lobes
+1. Compute exact modal parameters (poles & amplitudes) from true M, C, K
+2. Fit mode shapes using RealModes (proportional) and ComplexModes (non-proportional)
+3. Reconstruct M, C, K from fitted mode shapes
+4. Compare errors
+5. Generate and compare IRFs from true and reconstructed systems
+6. Compare stability lobes
 """
 import sys
 from pathlib import Path
@@ -33,7 +34,7 @@ DATA_DIR.mkdir(exist_ok=True)
 IMAGES_DIR.mkdir(exist_ok=True)
 
 print("=" * 70)
-print("DAMPING ASSUMPTION COMPARISON (EXACT POLES & AMPLITUDES)")
+print("MODE SHAPE RECOVERY: DAMPING ASSUMPTION COMPARISON")
 print("=" * 70)
 
 # --- Load true system ---
@@ -52,7 +53,7 @@ print(f"M =\n{M_true}")
 print(f"\nC =\n{C_true}")
 print(f"\nK =\n{K_true}")
 
-# --- Generate exact modal parameters ---
+# --- Compute exact modal parameters (poles & amplitudes ONLY) ---
 print("\n" + "-" * 70)
 print("STEP 1: Compute Exact Modal Parameters")
 print("-" * 70)
@@ -88,7 +89,7 @@ print(f"\nProportional damping check:")
 print(f"  Phase differences: {np.rad2deg(phase_diff)} degrees")
 print(f"  System is {'PROPORTIONAL' if is_proportional else 'NON-PROPORTIONAL'}")
 
-# Compute exact amplitudes (residues)
+# Compute exact amplitudes (residues) - needed for fitting
 amps_true = ema.mode_to_amps(mode_shapes_norm, n_out, n_in)
 
 print(f"\nTrue amplitudes (tensor shape: {amps_true.shape}):")
@@ -96,22 +97,16 @@ for i_out in range(n_out):
     for i_in in range(n_in):
         print(f"  Out {i_out}, In {i_in}: {amps_true[i_out, i_in, :]}")
 
-# Generate noiseless IRF
-print("\nGenerating noiseless IRF...")
-kernel_true = ema.Kernel(nat_freqs_true, amps_true)
-irf_true = kernel_true(tt)
-print(f"IRF shape: {irf_true.shape}")
-
 # Convert to discrete-time poles for fitting
 poles_discrete = np.exp(nat_freqs_true * dt)
-print(f"\nDiscrete-time poles:")
-for i, p in enumerate(poles_discrete):
-    print(f"  Mode {i+1}: {p}")
 
-# --- Fit RealModes (proportional damping assumption) ---
+# --- Fit mode shapes using RealModes (proportional assumption) ---
 print("\n" + "-" * 70)
-print("STEP 2: Fit RealModes (Proportional Damping Assumption)")
+print("STEP 2: Fit Mode Shapes with Proportional Damping Assumption")
 print("-" * 70)
+
+print("\nFitting RealModes using ONLY poles and amplitudes...")
+print("(Mode shapes are what we're trying to recover)")
 
 model_real = ema.RealModes(
     poles=poles_discrete,
@@ -121,20 +116,22 @@ model_real = ema.RealModes(
     response='a'
 )
 
-print("Starting optimization with exact poles and amplitudes...")
 model_real.fit(options_ncg={'disp': 2, 'gtol': 1e-6})
 
 print(f"\nOptimization complete:")
 print(f"  Success: {model_real.success_}")
 
 modes_real = model_real.modes_
-print(f"\nFitted mode shapes (real, proportional assumption):")
+print(f"\nRecovered mode shapes (real, proportional assumption):")
 print(modes_real)
 
-# --- Fit ComplexModes (non-proportional damping) ---
+# --- Fit mode shapes using ComplexModes (non-proportional) ---
 print("\n" + "-" * 70)
-print("STEP 3: Fit ComplexModes (Non-Proportional Damping)")
+print("STEP 3: Fit Mode Shapes without Proportional Assumption")
 print("-" * 70)
+
+print("\nFitting ComplexModes using ONLY poles and amplitudes...")
+print("(Mode shapes can be complex)")
 
 model_complex = ema.ComplexModes(
     poles=poles_discrete,
@@ -145,8 +142,6 @@ model_complex = ema.ComplexModes(
     response='a'
 )
 
-print("Starting optimization with exact poles and amplitudes...")
-print("Using RealModes result as initial guess...")
 model_complex.fit(
     x0=modes_real,
     maxiter=100,
@@ -156,7 +151,7 @@ model_complex.fit(
 print(f"\nOptimization complete")
 
 modes_complex = model_complex.modes_
-print(f"\nFitted mode shapes (complex, non-proportional):")
+print(f"\nRecovered mode shapes (complex, non-proportional):")
 print(modes_complex)
 
 # Compare with true mode shapes
@@ -165,26 +160,26 @@ print(mode_shapes_norm)
 
 # --- Reconstruct M, C, K matrices ---
 print("\n" + "-" * 70)
-print("STEP 4: Reconstruct M, C, K Matrices")
+print("STEP 4: Reconstruct M, C, K from Recovered Mode Shapes")
 print("-" * 70)
 
 # Convert discrete poles back to continuous
 roots_continuous = np.log(poles_discrete) / dt
 
 print("\nReconstruction from RealModes (proportional):")
-# Apply reduced normalization
-modes_real_norm = modes_real * np.sqrt(np.imag(roots_continuous))[np.newaxis, :]
-M_prop, C_prop, K_prop = ema.modal_to_system(modes_real_norm, roots_continuous)
+modes_real_scaled = modes_real * np.sqrt(np.imag(roots_continuous))[np.newaxis, :]
+M_prop, C_prop, K_prop = ema.modal_to_system(modes_real_scaled, roots_continuous)
 
 print(f"M (proportional) =\n{M_prop}")
 print(f"\nC (proportional) =\n{C_prop}")
 print(f"\nK (proportional) =\n{K_prop}")
 
 print("\nReconstruction from ComplexModes (non-proportional):")
-# Apply reduced normalization
-modes_complex_norm = modes_complex * np.sqrt(np.imag(roots_continuous))[np.newaxis, :]
+modes_complex_scaled = (
+    modes_complex * np.sqrt(np.imag(roots_continuous))[np.newaxis, :]
+)
 M_nonprop, C_nonprop, K_nonprop = ema.modal_to_system(
-    modes_complex_norm, roots_continuous
+    modes_complex_scaled, roots_continuous
 )
 
 print(f"M (non-proportional) =\n{M_nonprop}")
@@ -193,7 +188,7 @@ print(f"\nK (non-proportional) =\n{K_nonprop}")
 
 # Compute relative errors
 print("\n" + "-" * 70)
-print("STEP 5: Compute Errors")
+print("STEP 5: Compute Matrix Reconstruction Errors")
 print("-" * 70)
 
 M_error_prop = np.linalg.norm(M_prop - M_true) / np.linalg.norm(M_true)
@@ -219,15 +214,96 @@ print(f"  M: {(1 - M_error_nonprop/M_error_prop)*100:.2f}%")
 print(f"  C: {(1 - C_error_nonprop/C_error_prop)*100:.2f}%")
 print(f"  K: {(1 - K_error_nonprop/K_error_prop)*100:.2f}%")
 
+# --- Generate IRFs for comparison ---
+print("\n" + "-" * 70)
+print("STEP 6: Generate IRFs for Time-Domain Comparison")
+print("-" * 70)
+
+print("\nGenerating IRFs from reconstructed systems...")
+
+# True system IRF
+kernel_true = ema.Kernel(nat_freqs_true, amps_true)
+irf_true = kernel_true(tt)
+
+# Proportional system IRF (from reconstructed M, C, K)
+mode_shapes_prop, nat_freqs_prop = ema.system_to_modal(M_prop, C_prop, K_prop)
+mode_shapes_prop_norm = (
+    mode_shapes_prop / np.sqrt(np.imag(nat_freqs_prop))[np.newaxis, :]
+)
+amps_prop = ema.mode_to_amps(mode_shapes_prop_norm, n_out, n_in)
+kernel_prop = ema.Kernel(nat_freqs_prop, amps_prop)
+irf_prop = kernel_prop(tt)
+
+# Non-proportional system IRF (from reconstructed M, C, K)
+mode_shapes_nonprop, nat_freqs_nonprop = ema.system_to_modal(
+    M_nonprop, C_nonprop, K_nonprop
+)
+mode_shapes_nonprop_norm = (
+    mode_shapes_nonprop / np.sqrt(np.imag(nat_freqs_nonprop))[np.newaxis, :]
+)
+amps_nonprop = ema.mode_to_amps(mode_shapes_nonprop_norm, n_out, n_in)
+kernel_nonprop = ema.Kernel(nat_freqs_nonprop, amps_nonprop)
+irf_nonprop = kernel_nonprop(tt)
+
+print(f"IRF shapes: {irf_true.shape}")
+
+# Plot IRF comparison
+fig, axes = plt.subplots(2, 1, figsize=(10, 8))
+
+# Plot for coordinate 0 (bar tip)
+ax = axes[0]
+ax.plot(tt*1e3, irf_true[0, 0, :].real, 'k-', linewidth=2, label='True system')
+ax.plot(
+    tt*1e3, irf_prop[0, 0, :].real, 'r--',
+    linewidth=1.5, label='Proportional (RealModes)'
+)
+ax.plot(
+    tt*1e3, irf_nonprop[0, 0, :].real, 'b-.',
+    linewidth=1.5, label='Non-proportional (ComplexModes)'
+)
+ax.set_ylabel(f'{COORD_LABELS[0]} IRF [m/N]', fontsize=11)
+ax.set_title(
+    'Impulse Response Function Comparison',
+    fontsize=12,
+    fontweight='bold'
+)
+ax.legend(loc='best', fontsize=9)
+ax.grid(True, alpha=0.3)
+ax.set_xlim([0, 20])
+
+# Plot for coordinate 1 (TMD)
+ax = axes[1]
+ax.plot(tt*1e3, irf_true[1, 0, :].real, 'k-', linewidth=2, label='True system')
+ax.plot(
+    tt*1e3, irf_prop[1, 0, :].real, 'r--',
+    linewidth=1.5, label='Proportional (RealModes)'
+)
+ax.plot(
+    tt*1e3, irf_nonprop[1, 0, :].real, 'b-.',
+    linewidth=1.5, label='Non-proportional (ComplexModes)'
+)
+ax.set_xlabel('Time [ms]', fontsize=11)
+ax.set_ylabel(f'{COORD_LABELS[1]} IRF [m/N]', fontsize=11)
+ax.legend(loc='best', fontsize=9)
+ax.grid(True, alpha=0.3)
+ax.set_xlim([0, 20])
+
+plt.tight_layout()
+
+# Save IRF comparison figure
+irf_output = IMAGES_DIR / '03_irf_comparison.jpg'
+fig.savefig(irf_output, dpi=300, bbox_inches='tight')
+print(f"\nIRF comparison saved to: {irf_output}")
+
 # --- Stability Lobe Comparison ---
 print("\n" + "-" * 70)
-print("STEP 6: Stability Lobe Comparison")
+print("STEP 7: Stability Lobe Comparison")
 print("-" * 70)
 
 # Determine omega range based on natural frequencies
 fn_avg = np.mean([np.abs(np.imag(lam)) / (2*np.pi) for lam in nat_freqs_true])
-omega_min = 2 * np.pi * fn_avg * 0.5  # 50% of average natural frequency
-omega_max = 2 * np.pi * fn_avg * 1.5  # 150% of average natural frequency
+omega_min = 2 * np.pi * fn_avg * 0.5
+omega_max = 2 * np.pi * fn_avg * 1.5
 
 print(f"\nStability lobe parameters:")
 print(f"  Omega range: [{omega_min:.1f}, {omega_max:.1f}] rad/s")
@@ -302,34 +378,12 @@ ax.legend(loc='best', fontsize=10)
 ax.grid(True, alpha=0.3)
 
 # Save figure
-output_path = IMAGES_DIR / '03_damping_comparison.png'
-fig.savefig(output_path, dpi=300, bbox_inches='tight')
-print(f"\n✓ Saved stability lobe comparison to: {output_path}")
+lobes_output = IMAGES_DIR / '03_stability_lobes.jpg'
+fig.savefig(lobes_output, dpi=300, bbox_inches='tight')
+print(f"Stability lobes saved to: {lobes_output}")
 
-# --- Summary ---
 print("\n" + "=" * 70)
-print("SUMMARY")
+print("ANALYSIS COMPLETE")
 print("=" * 70)
-
-print(f"""
-This comparison uses EXACT poles and amplitudes (no identification errors).
-The only difference is the mathematical constraint on mode shapes:
-  - RealModes: forces mode shapes to be real (proportional damping)
-  - ComplexModes: allows complex mode shapes (non-proportional damping)
-
-Results:
-  - RealModes C error: {C_error_prop*100:.4f}%
-  - ComplexModes C error: {C_error_nonprop*100:.4f}%
-  
-The proportional damping assumption introduces significant error in the
-damping matrix C, which affects the stability lobe predictions.
-
-For this system (non-proportional damping), ComplexModes is essential
-for accurate stability analysis.
-""")
 
 plt.show()
-
-print("\n" + "=" * 70)
-print("COMPLETE")
-print("=" * 70)

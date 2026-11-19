@@ -3,6 +3,7 @@
 local.md
 *__pycache__/
 .pytest_cache/
+HSM_Template.doc
 
 # Example paper outputs
 src/example_paper/data/
