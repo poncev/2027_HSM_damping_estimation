@@ -9,6 +9,8 @@ the modal parameters of the structure are calculated assuming or not
 proportional damping.
 I plan to generate stability lobes for turning, and the model has 2-DoF.
 
+For background information, check `previous_agent.md` file.
+
 # Python Style
 
 - Use PEP 8 hanging indents for multi-line function calls: opening parenthesis at end
