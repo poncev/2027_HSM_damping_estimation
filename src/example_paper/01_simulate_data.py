@@ -8,9 +8,10 @@ This script:
 4. Saves synthetic measurements in UFF format and as NumPy arrays
 """
 import sys
+from pathlib import Path
+
 import numpy as np
 import matplotlib.pyplot as plt
-from pathlib import Path
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -218,6 +219,7 @@ ax.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.savefig(IMAGES_DIR / '01_synthetic_measurements.png', dpi=150)
 print(f"✓ Saved figure: {IMAGES_DIR / '01_synthetic_measurements.png'}")
+plt.show()
 
 print("\n" + "=" * 70)
 print("SIMULATION COMPLETE")

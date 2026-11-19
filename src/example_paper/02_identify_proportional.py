@@ -11,16 +11,16 @@ This script:
 7. Saves results for stability lobe comparison
 """
 import sys
+from pathlib import Path
+
 import numpy as np
 import scipy.linalg
 import matplotlib.pyplot as plt
-from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent))
 
 from bcam.indar import ema
-from sklearn.model_selection import GridSearchCV
 from system_params import COORD_LABELS
 
 # Directories
@@ -188,9 +188,9 @@ if n_out < n_dof:
     print(f"Extending from {n_out} measured to {n_dof} DOF...")
     x_full = np.zeros((n_dof, n_dof), dtype=float)
     x_full[:n_out] = modes_real
-    q, r = scipy.linalg.qr(modes_real.T, mode='full')
+    q, r = scipy.linalg.qr(modes_real.T, mode='full')  # type: ignore[assignment]
     factor = np.mean(np.abs(np.diagonal(r)))
-    x_full[n_out:] = factor * q[:, n_out:].T
+    x_full[n_out:] = factor * q[:, n_out:].T  # type: ignore[index]
 else:
     x_full = modes_real
 
@@ -326,6 +326,8 @@ ax.grid(True, alpha=0.3, axis='y')
 plt.tight_layout()
 plt.savefig(IMAGES_DIR / '02_proportional_validation.png', dpi=150)
 print(f"✓ Saved figure: {IMAGES_DIR / '02_proportional_validation.png'}")
+
+plt.show()
 
 print("\n" + "=" * 70)
 print("PROPORTIONAL DAMPING IDENTIFICATION COMPLETE")
