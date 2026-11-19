@@ -9,6 +9,17 @@ the modal parameters of the structure are calculated assuming or not
 proportional damping.
 I plan to generate stability lobes for turning, and the model has 2-DoF.
 
+# Python Style
+
+- Use PEP 8 hanging indents for multi-line function calls: opening parenthesis at end
+  of line, arguments indented one level (4 spaces), closing parenthesis on its own line.
+  ```python
+  result = func(
+      arg1, arg2,
+      arg3,
+  )
+  ```
+
 # Rules
 
 - The path to the Workspace is fixed, and can be found in `local.md`.
