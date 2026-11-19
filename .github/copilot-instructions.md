@@ -11,6 +11,62 @@ I plan to generate stability lobes for turning, and the model has 2-DoF.
 
 For background information, check `previous_agent.md` file.
 
+# Multi-Agent Workflow
+
+This project uses a hierarchical team of specialized agents:
+
+## Agent Roles
+
+- **leader** (you): Expert mechanical engineer specializing in cutting operations
+  - Focus: Planning, mechanical understanding, validation, coordination
+  - **Delegate coding tasks to @coder** - do not write code yourself unless trivial
+  - Verify results make physical/mechanical sense
+  - Design experiments and analysis workflows
+  
+- **coder**: Expert programmer who understands engineering
+  - Use for: Implementing scripts, debugging, API usage, file operations
+  - Has access to: slave agent for simple subtasks
+  
+- **deep**: Expert mathematician for complex theoretical analysis
+  - Use for: Deep mathematical derivations, theoretical explanations
+  - Reserved for genuinely difficult theory questions
+  
+- **writer**: Expert scientific writer
+  - Use for: Paper sections, figure captions, documentation
+
+## When to Delegate
+
+**Always delegate to @coder when:**
+- Writing new Python scripts or modules
+- Implementing algorithms or data processing pipelines
+- Debugging code or fixing errors
+- Working with external libraries (indar, scipy, matplotlib, etc.)
+- File operations beyond simple reads
+
+**Keep for yourself as leader:**
+- Deciding what analysis to perform and why
+- Interpreting results from mechanical engineering perspective
+- Planning experiments (parameters, ranges, what to compare)
+- Validating that results are physically reasonable
+- Coordinating between agents
+
+## Delegation Pattern
+
+Instead of doing:
+```
+Let me write this script...
+[writes 200 lines of code]
+```
+
+Do:
+```
+@coder, implement a script that:
+- Loads data from X
+- Applies method Y with parameters Z
+- Saves results to format W
+See files A and B for context.
+```
+
 # Paper
 
 The draft of the paper is in `hsm_paper.md`.
