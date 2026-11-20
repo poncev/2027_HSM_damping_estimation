@@ -40,6 +40,101 @@ In the context of machining, mechanisms based on TMDs are used for the suppressi
 
 As part of a more ambitious revision of EMA, we developed the open-source Python package Indar (this word comes from the Basque word for Force) [Indar 2026]. Among other innovations, this package offers methods to fit nonproportional damping to experimental data; see [Ponce-Vanegas 2026] for a more comprehensive description of capabilities. However, due to the very challenging nature of these systems, Indar does not offer a universal solution yet, so continued research is still needed to cover a broader variety of systems.
 
+### AI disclaimer
+
+The main research ideas and content of this paper were devised by the authors.
+AI tools were extensively used for theoretical derivation and software development through GitHub Copilot in VS Code.
+The repository, including the agentic structure used for this work, is available at [[GitHub URL placeholder](https://github.com/poncev/2027_HSM_damping_estimation)].
+The chat sessions are considered raw research data and are available upon request before 1 March 2027, when they will be deleted.
+
+## The Indar Package
+
+As part of a broader effort to revisit EMA methodology, we developed the open-source Python package Indar [Indar 2026]. Unlike proprietary commercial software, Indar is freely accessible with no paywall restrictions, allowing researchers to read, modify, and extend the source code according to their specific needs. 
+
+A key distinction of Indar is its native capability to handle nonproportional damping systems through algorithms specifically designed for this purpose. While mainstream commercial EMA software typically forces real mode shapes regardless of the underlying damping structure, Indar implements robust methods to identify and characterize complex mode shapes when the proportional damping assumption is violated. 
+
+For a comprehensive description of Indar's capabilities, including advanced pole identification algorithms and leakage-free estimation methods, see [Ponce-Vanegas 2026].
+
+## Proportional and Nonproportional Damping
+
+The standard approach in EMA assumes proportional damping, which allows the system to be decoupled into $n$ independent single-DoF oscillators using real mode shapes. This assumption drastically simplifies the analysis and is embedded in most commercial software. However, for a system to be truly proportionally damped, the complex mode shapes $\Phi$ must satisfy the compatibility condition 
+
+$$\text{Im}(\Phi^T \Phi) = 0 \tag{3}$$
+
+or equivalently, in element-wise form:
+
+$$\text{Im}\Big(\sum_l\varphi_{il}\varphi_{jl}\Big) = 0 \quad \text{for all } i, j$$
+
+This condition states that all cross-products between mode shapes must be real numbers. Physically, it means that all points in the structure vibrate in phase or exactly out of phase for each mode—there are no intermediate phase relationships that would indicate energy transfer between modes during oscillation.
+
+The critical issue is that commercial EMA software typically forces real mode shapes onto the identified system without verifying whether equation (3) is satisfied. When the underlying system exhibits nonproportional damping—violating this compatibility condition—forcing real modes can introduce errors exceeding 90% in the reconstructed damping matrix [Ponce-Vanegas 2026]. The only exception we are aware of is the Structural Dynamics Toolbox (SDT), which explicitly addresses nonproportional damping [Balmes 2019].
+
+Nonproportional damping becomes particularly relevant in several machining scenarios: systems with Tuned Mass Dampers where modes are closely spaced, multi-cutter configurations where fixture damping couples modes [Reith 2017], and whenever the Hasselman violation criterion (2) is met. In these cases, forcing proportional damping leads to inaccurate stability predictions.
+
+Indar addresses this limitation by fitting complex mode shapes that naturally respect nonproportionality. The identification algorithm minimizes the weighted residual loss function:
+
+$$\mathcal{L}(\Phi, \Lambda) = \sum_{k=1}^{N_f} w_k \left\| H(\omega_k) - \Phi \text{diag}\left(\frac{1}{\Lambda^2 - \omega_k^2}\right) \Phi^T \right\|_F^2 \tag{4}$$
+
+where $H(\omega_k)$ are the measured frequency response functions, $\Lambda$ contains the complex natural frequencies, and $w_k$ are weights. This approach allows the mode shapes to assume complex values when needed, capturing the true dynamics of nonproportionally damped systems.
+
+## Stability Analysis
+
+For turning operations, chatter stability is determined by analyzing the characteristic equation of the delayed differential equation. When the regenerative cutting force acts at a single point (coordinate $x_1$), the stability boundary can be found analytically. We express the problem in normalized spindle angle coordinates $\theta = \Omega t$, where $\Omega$ is the spindle speed and the delay becomes $\tau = 1$ revolution.
+
+The key function for stability analysis is:
+
+$$H(\beta, \Omega) = G_{11}(\beta, \Omega) \left(e^{-i\beta} - 1\right) \tag{5}$$
+
+where $\beta$ is the characteristic exponent, $G_{11}$ is the $(1,1)$ entry of the mechanical receptance matrix $A^{-1}$, and $A = -\Omega^2\beta^2 M + i\Omega\beta C + K$. The stability boundary corresponds to pure imaginary exponents ($\beta = i\omega$) where:
+
+$$\text{Im}[H(i\omega, \Omega)] = 0, \quad h = \frac{1}{K_n \text{Re}[H(i\omega, \Omega)]}$$
+
+where $h$ is the chip thickness and $K_n$ is the cutting coefficient.
+
+This approach works efficiently for single-point forces because the matrix determinant lemma reduces the problem to scalar computations. For more complex geometries where forces act at multiple nodes, analytical solutions break down, making accurate modal identification through tools like Indar even more critical. We focus here on the simpler single-point case to clearly illustrate the effects of nonproportional damping on stability predictions.
+
+## Example: Turning with Tuned Mass Damper
+
+To illustrate the practical implications of nonproportional damping, we analyzed a 2-DoF system representing a turning tool equipped with a Tuned Mass Damper (TMD), following a similar setup as in [Muñoa 2015, Yang 2010]. The system parameters are summarized in Table 1.
+
+**Table 1.** System parameters for turning tool with TMD
+
+| Parameter | Value | Description | Reference |
+|-----------|-------|-------------|----------|
+| $m_1$ | 2.0 kg | Tool modal mass | [Yang 2010] |
+| $f_{n1}$ | 350 Hz | Tool natural frequency (without TMD) | [Yang 2010] |
+| $\zeta_1$ | 0.025 | Tool damping ratio | [Yang 2010] |
+| $\mu$ | 0.05 | TMD mass ratio ($m_2/m_1$) | [Den Hartog 1956] |
+| $K_n$ | 1.2 GPa | Cutting coefficient (Inconel 718) | [Pawade 2008] |
+
+The TMD was designed following Den Hartog optimal tuning criteria [Den Hartog 1956] with a mass ratio $\mu = 0.05$. This configuration intentionally creates closely spaced modes to suppress vibrations. The resulting system exhibits nonproportional damping, violating the compatibility condition (equation 3).
+
+We assume the modal parameters (poles and residue amplitudes) are known from FRF measurements. The objective is to recover the mode shapes using the loss function (equation 4) and test whether the proportional damping assumption introduces significant errors. The system matrices $M$, $C$, and $K$ are reconstructed using two different approaches:
+
+1. **RealModes**: Assumes proportional damping and fits real mode shapes to the data. This approach mimics the standard algorithms used in commercial EMA software.
+
+2. **ComplexModes**: Properly handles nonproportional damping by preserving the complex nature of the mode shapes. This method is implemented in Indar and respects the compatibility condition (equation 3).
+
+Both reconstructed systems were used to compute stability lobe diagrams using the approach described in the previous section.
+
+Figure X compares the frequency response functions (FRF) reconstructed from both methods against the true system response. The most striking difference appears in the damper FRF (coordinate 2), where forcing real mode shapes produces visible discrepancies from the true response. The tool tip FRF (coordinate 1) also shows deviations, though less pronounced.
+
+Figure Y presents the stability lobe diagrams in the low spindle speed range (50-600 rad/s), where the pocket structure near the natural frequencies is most pronounced. In this critical region, the differences between the stability predictions from the two methods become apparent, with the proportional damping assumption yielding predictions that deviate from the true system behavior.
+
+These results demonstrate that forcing the proportional damping assumption on inherently nonproportional systems—as is standard practice in commercial EMA software—can lead to substantial errors in the reconstructed dynamic model. For machining applications where chatter stability margins are often narrow, such errors could result in incorrect stability predictions and suboptimal process parameters.
+
+## Conclusions
+
+Nonproportional damping occurs in various machining configurations, including systems equipped with tuned mass dampers for chatter suppression, multi-cutter setups, and structures with closely spaced modes and high damping ratios. While TMDs are designed to suppress chatter, accurately characterizing their dynamics through EMA requires models that can handle nonproportional damping. The compatibility condition $\text{Im}(\Phi^T \Phi) = 0$ provides a clear mathematical criterion to identify when the proportional damping assumption is violated, yet this condition is systematically ignored by mainstream commercial EMA software.
+
+Our example with a 2-DoF turning tool equipped with a TMD demonstrates that forcing the proportional damping assumption on nonproportional systems can lead to substantial errors in the reconstructed FRFs and stability lobe predictions. Such errors could compromise chatter suppression strategies and process optimization efforts.
+
+The open-source Indar package provides researchers and engineers with accessible tools to properly identify and characterize nonproportional damping in experimental data. As machining processes continue to advance toward higher precision and more complex configurations, accurate modal models that respect the true damping structure become increasingly essential for reliable chatter prediction and suppression.
+
+## Acknowledgments
+
+This research was supported by the Momentum MSCA Programme, funded by the Horizon Europe programme under the HORIZON-MSCA-2023-COFUND [grant No. 101179854], and co-funded by the Hungarian Academy of Sciences (MTA).
+
 ## References
 
 [Baldelomar 2026] Baldelomar, L. M., et al. Understanding modal interactions in non-classically damped linear oscillators with closely spaced modes. J. Sound Vib., 2026, Vol.638, pp 119818. ISSN 0022-460X 

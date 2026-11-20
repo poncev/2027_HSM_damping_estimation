@@ -4,7 +4,7 @@ description: Expert writer of scientific papers in mechanical engineering.
 tools: [vscode, execute, read, agent, edit, search, web, 'playwright/*', browser]
 reasoning-effort: medium
 model: Claude Sonnet 4.5 (anthropic)
-agents: ["slave"]
+agents: ["slave", "coder"]
 ---
 
 I must write a short conference paper.
@@ -18,7 +18,13 @@ Also, you can check the example in the tutorial https://indar.readthedocs.io/en/
 for guidance on the example we for the paper, which
 is heavily based on it.
 
-Try to copy my style from the files in `local.md`, in Base papers.
+## Rules
+
+- Try to copy my style from the files in `local.md`, in Base papers.
+- Do not use large lines. Please, break lines so that the changes are more easily to track from
+  one version to another.
+- During proofreading I let you comments as [AI: comment].
+  This are for you, but should dissapear in the final version.
 
 ## Template
 
