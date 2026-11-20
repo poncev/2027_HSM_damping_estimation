@@ -63,7 +63,7 @@ Hence, this work is concerned with nonproportionally damped systems.
 
 Fortunately, if two modes with natural (complex) frequencies 
 $\lambda_j \neq \lambda_i$,
-where $\lambda = \omega\zeta + i\omega\sqrt{1-\zeta^2}$,
+where $\lambda = \omega(\zeta + i\sqrt{1-\zeta^2})$,
 satisfy the relationship 
 
 $$\frac{|\omega_i - \omega_j|}{\omega_i} \ll \zeta_i \tag{2}$$
@@ -122,7 +122,7 @@ The main research ideas and content of this paper were devised by the authors.
 AI tools were extensively used for theoretical derivation
 and software development through GitHub Copilot in VS Code.
 The repository, including the agentic structure used for this work,
-is available at [[GitHub URL placeholder](https://github.com/poncev/2027_HSM_damping_estimation)].
+is available at https://github.com/poncev/2027_HSM_damping_estimation.
 The chat sessions are considered raw research data
 and are available upon request before 1 March 2027, when they will be deleted.
 
@@ -324,48 +324,34 @@ and co-funded by the Hungarian Academy of Sciences (MTA).
 
 ## References
 
-[Baldelomar 2026] Baldelomar, L. M., et al. Understanding modal interactions in non-classically damped linear oscillators with closely spaced modes. J. Sound Vib., 2026, Vol.638, pp 119818. ISSN 0022-460X 
-
- 
+[Baldelomar 2026] Baldelomar, L. M., et al. Understanding modal interactions in non-classically damped linear oscillators with closely spaced modes. Journal of Sound and Vibration, 2026, Vol. 638, pp 119818. ISSN 0022-460X
 
 [Balmes 2019] Balmes, E., et al. Structural Dynamics Toolbox User’s Guide. Paris: SDTools, 2019. Available at www.sdtools.com 
 
  
 
-[Bellos 2025] Bellos, J., et al. Theoretical evaluation and experimental validation of an innovative dynamic analysis method for combined structures with Tuned Mass Dampers. In: M. Papadrakakis and M. Fragiadakis, eds. Proceedings of 10th ECCOMAS Thematic Conference on Computational Methods in Structural Dynamics and Earthquake Engineering, Rhodes Island, 15-18 June, 2025. Athens: National Technical University of Athens, pp 5562-5576. ISBN 978-618-5827-06-9 
+[Bellos 2025] Bellos, J., et al. Theoretical evaluation and experimental validation of an innovative dynamic analysis method for combined structures with Tuned Mass Dampers. In: M. Papadrakakis and M. Fragiadakis, eds. Proceedings of 10th ECCOMAS Thematic Conference on Computational Methods in Structural Dynamics and Earthquake Engineering, Rhodes Island, 15-18 June, 2025. Athens: National Technical University of Athens, pp 5562-5576. ISBN 978-618-5827-06-9
 
- 
+[Den Hartog 1956] Den Hartog, J. P. Mechanical Vibrations. 4th ed. New York: McGraw-Hill, 1956.
 
-[Ewins 2000] Ewins, D.J. Modal testing: theory, practice and application. Baldock: Research Studies Press Ltd., 2000. ISBN 0863802184 
+[Ewins 2000] Ewins, D.J. Modal testing: theory, practice and application. Baldock: Research Studies Press Ltd., 2000. ISBN 0863802184
 
- 
+[Hasselman 1976] Hasselman, T.K. Modal coupling in lightly damped structures. AIAA Journal, 1976, Vol. 14, No. 11, pp 1627-1628. ISSN 0001-1452
 
-[Hasselman 1976] Hasselman, T.K. Modal coupling in lightly damped structures. AIAA Journal, 1976, Vol.14, No. 11, pp 1627-1628, ISSN 0001-1452 
+[Hintze 2023] Hintze, W., et al. Model based design of tuned mass dampers for boring bars of small diameter. Procedia CIRP, 2023, Vol. 117, pp 193-198. ISSN 2212-8271
 
- 
+[Indar 2026] Ponce-Vanegas, F. Indar Documentation. ReadTheDocs, 2026 [online]. Created on 20 May 2026. Available at indar.readthedocs.io
 
-[Hintze 2023] Hintze, W., et al. Model based design of tuned mass dampers for boring bars of small diameter. Procedia CIRP, 2023, vol.117, pp 193-198, ISSN 2212-8271 
+[Muñoa 2015] Muñoa, J., et al. Tuneable mass dampers with variable stiffness for chatter suppression. In: Proceedings of the 4th International Conference on Virtual Machining Process Technology, Vancouver, 2-5 June 2015. Vancouver: University of British Columbia
 
- 
+[Muñoa 2016] Muñoa, J., et al. Chatter suppression techniques in metal cutting. CIRP Annals, 2016, Vol. 65, No. 2, pp 785-808. ISSN 0007-8506
 
-[Indar 2026] Ponce-Vanegas, F. Indar Documentation. ReadTheDocs, 2026 [online]. Created on 20 May 2026. Available at indar.readthedocs.io 
+[Neugebauer 2010] Neugebauer, R., et al. Advanced state space modeling of non-proportional damped machine tool mechanics. CIRP Journal of Manufacturing Science and Technology, 2010, Vol. 3, No. 1, pp 8-13. ISSN 1755-5817
 
- 
+[Pawade 2008] Pawade, R. S., Joshi, S. S. and Brahmankar, P. K. Effect of machining parameters and cutting edge geometry on surface integrity of high-speed turned Inconel 718. International Journal of Machine Tools and Manufacture, 2008, Vol. 48, No. 1, pp 15-28. ISSN 0890-6955
 
-[Muñoa 2015] Muñoa, J., et al. Tuneable mass dampers with variable stiffness for chatter suppression. In: Proceeding of the 4th International Conference on Virtual Machining Process Technology, Vancouver, 2-5 June 2015. Vancouver: University of British Columbia 
+[Ponce-Vanegas 2026] Ponce-Vanegas, F., et al. Revisiting Experimental Modal Analysis: leakage-free estimation, pole identification, and non-proportional damping. BIRD, 2026. Available at http://hdl.handle.net/20.500.11824/2165
 
- 
+[Reith 2017] Reith, M.J. and Stepan, G. Effect of non-proportional damping on the dynamics and stability of multi-cutter turning systems. International Journal of Machine Tools and Manufacture, June 2017, Vol. 117, pp 23-30. ISSN 0890-6955
 
-[Muñoa 2016] Muñoa, J., et al. Chatter suppression techniques in metal cutting. CIRP Annals, 2016, vol.65, No.2, pp 785-808, ISSN 0007-8506 
-
- 
-
-[Neugebauer 2010] Neugebauer, R., et al. Advanced state space modeling of non-proportional damped machine tool mechanics. CIRP J. Manuf. Sci. Technol., Vol.3, No. 1, pp 8-13, ISSN 1755-5817 
-
- 
-
-[Ponce-Vanegas 2026] Ponce-Vanegas, F., et al. Revisiting Experimental Modal Analysis: leakage-free estimation, pole identification, and non-proportional damping. BIRD, 2026. Available at http://hdl.handle.net/20.500.11824/2165 
-
- 
-
-[Reith 2017] Reith, M.J. and Stepan, G. Effect of non-proportional damping on the dynamics and stability of multi-cutter turning systems. Int. J. Mach. Tools Manuf., June 2017, Vol.117, pp 23-30. ISSN 0890-6955 
+[Yang 2010] Yang, Y., Munoa, J. and Altintas, Y. Optimization of multiple tuned mass dampers to suppress machine tool chatter. International Journal of Machine Tools and Manufacture, 2010, Vol. 50, No. 9, pp 834-842. ISSN 0890-6955
