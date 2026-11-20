@@ -2,7 +2,6 @@
 import sys
 
 import numpy as np
-import scipy
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, '.')
@@ -17,7 +16,7 @@ def generate_random_spd_matrix_from_rng(rng):
 rng_parent = np.random.default_rng(seed=52)
 rng_children = rng_parent.spawn(3)
 system = [generate_random_spd_matrix_from_rng(rng_child) for rng_child in rng_children]
-system[1] *= 0.02 * system[1]
+system[1] *= 0.02
 # system = [M, C, K]
 
 # sanity check: underdamped system (complex eigenvalues)
@@ -44,20 +43,6 @@ plt.axhline(0, color='gray', linestyle='--')
 plt.scatter(np.pi*np.arange(4, 7), [0]*3, color='blue', marker='x', zorder=5)
 plt.legend()
 plt.show()
-
-# %%
-# Early root-continuation experiment (superseded by brute-force scan in lobes.py).
-# Newton's method from odd-pi seeds; misses branches born at bifurcations.
-roots = []
-roots.append(np.pi*np.arange(1, 10, step=2))
-d_omega = .005
-for step in range(1, 3):
-    omega = d_omega * step
-    fun = lambda f: np.imag(_H(np.atleast_1d(f), np.atleast_1d(omega), system)[:, 0])
-    x0 = 2*roots[-1] - roots[-2] if len(roots) > 1 else roots[-1]
-    f0 = scipy.optimize.newton(fun, x0=x0)
-    roots.append(f0)
-# h = 1/(cut_coeff * np.real(_H(np.atleast_1d(f0), np.atleast_1d(omega), system)[:, 0]))
 
 # %%
 # Stability lobe diagram for the random sandbox system
