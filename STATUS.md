@@ -1,7 +1,7 @@
 # Project Status: Proportional vs Non-Proportional Damping Analysis
 
-**Last Updated:** 2026-11-19  
-**Branch:** develop (merged from ft_tmd)
+**Last Updated:** 2026-11-20  
+**Branch:** develop
 
 ---
 
@@ -19,8 +19,11 @@
   - Uses exact poles and amplitudes (no identification errors)
   - Fits RealModes (proportional assumption) and ComplexModes
   - Reconstructs M, C, K matrices from fitted mode shapes
-  - Compares IRFs and stability lobes
-  - **Key Result:** 90.28% C error with proportional assumption
+  - Compares IRFs and stability lobes at low speeds (50-600 rad/s)
+  - Focuses on pocket structure near natural frequencies
+  - **Key Results:** 
+    - 90.28% C matrix reconstruction error
+    - Stability lobe differences show practical impact of proportional damping assumption
 
 - `src/example_paper/04_proportional_baseline.py`: **Proportional validation**
   - Creates truly proportional 2-DoF system using `ema.modal_to_system`
@@ -30,7 +33,7 @@
 
 **Output Files:**
 - `images/03_irf_comparison.jpg`: Time-domain IRF comparison (non-proportional case)
-- `images/03_stability_lobes.jpg`: Stability lobe diagram (non-proportional case)
+- `images/03_stability_lobes_low_speed.jpg`: Stability lobe diagram showing pocket structure (50-600 rad/s)
 - `images/04_irf_comparison.jpg`: Time-domain IRF comparison (proportional baseline)
 - `images/04_stability_lobes.jpg`: Stability lobe diagram (proportional baseline)
 
@@ -46,6 +49,33 @@
 - Proportional assumption fails significantly on TMD system (script 03)
 - ComplexModes handles both cases accurately
 - **C matrix error of 90% seems surprisingly high and warrants investigation**
+
+### Absolute Stability Limit
+
+**Updated:** 2026-11-20
+
+**Key Finding:** The system has an absolute (unconditional) stability limit $h_{abs}$ below which the system is stable for all spindle speeds.
+
+**Formula (from Tlusty & Polacek 1963, Tobias 1965, Altintas 2012):**
+$$h_{abs} = -\frac{1}{2 K_n \min_{\omega} \text{Re}[G(\omega)]}$$
+
+where $G(\omega)$ is the directional receptance.
+
+**Physical Interpretation:**
+- $h_{abs}$ represents the minimum chip thickness across all frequencies
+- Occurs at a frequency near the natural frequencies (for the TMD system: ~395 Hz)
+- Stability lobes touch this limit at low spindle speeds
+- At high speeds (far from resonance), the system becomes less stable due to inertia dominance
+
+**Implementation:**
+- Added `compute_absolute_stability_limit()` function to `src/lobes.py`
+- For the TMD system: $h_{abs} = 1.33$ mm
+
+**Paper Focus:**
+For the conference paper, we focus on the **low-speed pocket structure (50-600 rad/s)** where:
+- Rich lobe structure near natural frequencies is visible
+- Differences between proportional and non-proportional damping are most pronounced
+- Practically relevant spindle speed range for boring operations
 
 ### Git History
 - 10 commits on ft_tmd branch (merged to develop)

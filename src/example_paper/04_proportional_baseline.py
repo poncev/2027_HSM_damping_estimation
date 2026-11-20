@@ -374,10 +374,10 @@ print("\n" + "-" * 70)
 print("STEP 9: Stability Lobe Comparison")
 print("-" * 70)
 
-# Determine omega range based on natural frequencies
-fn_avg = np.mean([np.abs(np.imag(lam)) / (2*np.pi) for lam in nat_freqs_true])
-omega_min = 2 * np.pi * fn_avg * 0.5
-omega_max = 2 * np.pi * fn_avg * 1.5
+# Fixed omega range for rich lobe visualization
+# Lower speeds show characteristic lobe "pockets" where Omega ≈ omega_c / k
+omega_min = 100.0   # rad/s - low speed regime
+omega_max = 2500.0  # rad/s - up to natural frequency range
 
 print(f"\nStability lobe parameters:")
 print(f"  Omega range: [{omega_min:.1f}, {omega_max:.1f}] rad/s")
@@ -393,8 +393,8 @@ _, _, omega_true, h_true = plot_lobes(
     cut_coeff=Kn,
     omega_min=omega_min,
     omega_max=omega_max,
-    n_omega=400,
-    n_lobes=20,
+    n_omega=300,
+    n_lobes=50,
     beta_step=0.02,
     show_branches=False,
     ax=ax,
@@ -410,8 +410,8 @@ _, _, omega_prop, h_prop = plot_lobes(
     cut_coeff=Kn,
     omega_min=omega_min,
     omega_max=omega_max,
-    n_omega=400,
-    n_lobes=20,
+    n_omega=300,
+    n_lobes=50,
     beta_step=0.02,
     show_branches=False,
     ax=ax,
@@ -428,8 +428,8 @@ _, _, omega_nonprop, h_nonprop = plot_lobes(
     cut_coeff=Kn,
     omega_min=omega_min,
     omega_max=omega_max,
-    n_omega=400,
-    n_lobes=20,
+    n_omega=300,
+    n_lobes=50,
     beta_step=0.02,
     show_branches=False,
     ax=ax,

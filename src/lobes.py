@@ -74,6 +74,77 @@ def _prepare(system, representation):
     raise ValueError(f"representation must be 'mechanical' or 'modal', got {representation!r}")
 
 
+def compute_absolute_stability_limit(
+    system, cut_coeff=1.0,
+    omega_min=10.0, omega_max=20000.0, n_omega=5000,
+    representation='mechanical',
+):
+    """Compute absolute (unconditional) stability limit h_abs.
+    
+    From Tlusty & Polacek (1963), Tobias (1965), Altintas (2012):
+        h_abs = -1 / (2 * Kn * min_omega Re[G(omega)])
+    
+    This is the minimum chip thickness below which the system is stable
+    for all spindle speeds. Stability lobes touch this limit at frequencies
+    near the natural frequencies.
+    
+    Parameters
+    ----------
+    system : list [M, C, K]
+        Mechanical system matrices
+    cut_coeff : float
+        Cutting coefficient Kn (N/m²)
+    omega_min, omega_max : float
+        Frequency search range (rad/s)
+    n_omega : int
+        Number of frequencies to search
+    representation : str
+        'mechanical' or 'modal'
+    
+    Returns
+    -------
+    h_abs : float
+        Absolute stability limit (m)
+    omega_at_min : float
+        Frequency where Re[G] is minimum (rad/s)
+    Re_G_min : float
+        Minimum value of Re[G(omega)]
+    """
+    sys_, direction = _prepare(system, representation)
+    
+    # Search over frequency range
+    omega_search = np.linspace(omega_min, omega_max, n_omega)
+    
+    # Compute G(omega) at each frequency
+    # G = d^T A^{-1} d where A = K + i*omega*C - omega^2*M
+    Re_G_values = []
+    for omega in omega_search:
+        if direction is None:
+            # Use e1 shortcut: G = A[1,1] / det(A)
+            M, C, K = sys_
+            A = K + 1j * omega * C - omega**2 * M
+            G = A[1, 1] / np.linalg.det(A)
+        else:
+            # General directional case
+            M, C, K = sys_
+            A = K + 1j * omega * C - omega**2 * M
+            A_inv = np.linalg.inv(A)
+            G = np.dot(direction, np.dot(A_inv, direction))
+        Re_G_values.append(np.real(G))
+    
+    Re_G_values = np.array(Re_G_values)
+    
+    # Find minimum
+    idx_min = np.argmin(Re_G_values)
+    omega_at_min = omega_search[idx_min]
+    Re_G_min = Re_G_values[idx_min]
+    
+    # Compute absolute stability limit
+    h_abs = -1.0 / (2.0 * cut_coeff * Re_G_min)
+    
+    return h_abs, omega_at_min, Re_G_min
+
+
 def stability_scan(
     system, cut_coeff=1.0,
     omega_min=0.01, omega_max=1.0, n_omega=200,
