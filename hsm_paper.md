@@ -14,22 +14,21 @@ The finish quality of a workpiece is affected by multiple factors, such as the d
 
 One of the main frameworks for the modelling of vibrating structures is Experimental Modal Analysis (EMA), which relies on the assumption that the dynamic is linear. A standard mechanical model, based on viscous dissipation, is 
 
-Mx′′ + Cx′ + Kx = f, (1)
+$$M\ddot{x} + C\dot{x} + Kx = f \tag{1}$$
 
-where x ∈ ℝ𝑛 is the displacement from equilibrium, n are the Degrees of Freedom (DoF), and M, C, and K are the mass, damping, and stiffness matrices, which are symmetric and positive definite [Ewins 2000]. 
+where $x \in \mathbb{R}^n$ is the displacement from equilibrium, $n$ are the Degrees of Freedom (DoF), and $M$, $C$, and $K$ are the mass, damping, and stiffness matrices, which are symmetric and positive definite [Ewins 2000].
 
 Mature software for EMA includes Simcenter™ Testlab™ and BK Connect®, and many consider them the ultimate solutions. However, despite the good performance of these programs, there are still relevant situations where there is room for improvement over the current algorithmic approaches. This work focuses on one of these particular situations: damping estimation. 
 
-Much of the theoretical foundation of EMA lies on the assumption that there exists a coordinate basis that decouples the mechanical system (1) into n single DoF oscillators; these systems are known as proportionally damped systems. However, these systems constitute a negligible fraction of all possible mechanical systems, and this assumption could severely misrepresent a vibrating structure, which in turn could imply wrong conclusions about its stability. Hence, this work is concerned with nonproportionally damped systems. 
+Much of the theoretical foundation of EMA lies on the assumption that there exists a coordinate basis that decouples the mechanical system (1) into $n$ single DoF oscillators; these systems are known as proportionally damped systems. However, these systems constitute a negligible fraction of all possible mechanical systems, and this assumption could severely misrepresent a vibrating structure, which in turn could imply wrong conclusions about its stability. Hence, this work is concerned with nonproportionally damped systems. 
 
 Fortunately, if two modes with natural (complex) frequencies 
-𝜆j ≠ 𝜆i, where 𝜆 =𝜔𝜁 + i1−𝜁2 , satisfy the relationship 
+$\lambda_j \neq \lambda_i$, where $\lambda = \omega\zeta + i\omega\sqrt{1-\zeta^2}$, satisfy the relationship 
+
+$$\frac{|\omega_i - \omega_j|}{\omega_i} \ll \zeta_i \tag{2}$$
 
 
-∣∣𝜔𝑖−𝜔𝑗∣∣𝜔𝑖 ≪ 𝜁𝑖, (2) 
-
-
-where the symbol ≪ reads “much smaller than”, then the error introduced by ignoring the coupling between both modes is negligible [Hasselman 1976]. Notice, however, that this relationship is violated when the modes are close to each other, and the damping is sufficiently large. An interesting analysis and physical reinterpretation of these systems was proposed in [Baldelomar 2026]. 
+where the symbol $\ll$ reads “much smaller than”, then the error introduced by ignoring the coupling between both modes is negligible [Hasselman 1976]. Notice, however, that this relationship is violated when the modes are close to each other, and the damping is sufficiently large. An interesting analysis and physical reinterpretation of these systems was proposed in [Baldelomar 2026]. 
 
 In any case, the conditions under which significant coupling between modes occurs are not rare in practice. This motivated, for example, the study and modelling of machine tools with nonproportional damping in [Neugebauer 2010]. 
 
