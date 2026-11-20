@@ -49,9 +49,31 @@ and many consider them the ultimate solutions.
 However, despite the good performance of these programs,
 there are still relevant situations where there is room for improvement
 over the current algorithmic approaches.
-This work focuses on one of these particular situations: damping estimation. 
+On the other hand, commercial software limits accessibily, hides the implementation of the algorithms, and
+does not allow modification of the algorithms.
 
-Much of the theoretical foundation of EMA lies on the assumption
+For these reasons, 
+and as part of a more ambitious revision of EMA,
+we developed the open-source Python package *indar* [Indar 2026];
+in Basque, indar means force.
+This package offers capabilities such as methods for leakage-free FRF estimation,
+alternative algorithms for pole estimation of challenging configurations, or
+methods for retrieval of the mechanical system from partial information;
+see [Ponce-Vanegas 2026] for a more comprehensive description.
+
+In this paper we focus on one of the strengths of *indar*,
+that is, in the estimation of systems with nonproportional damping.
+Here, a brief theoretical review is presented
+together with a simple but telling example
+that shows the relevance of nonproportional damping in machining.
+However, due to the very challenging nature of these systems,
+*indar* does not offer a universal solution yet,
+so continued research is still needed to cover a broader variety of systems.
+To the best of our knowledge,
+the only program that truly tries to fit nonproportional damping
+is the Structural Dynamics Toolbox (SDT) [Balmes 2019].
+
+A typical assumption in EMA workflows
 that there exists a coordinate basis that decouples
 the mechanical system (1) into $n$ single DoF oscillators;
 these systems are known as proportionally damped systems.
@@ -59,7 +81,6 @@ However, these systems constitute a negligible fraction
 of all possible mechanical systems,
 and this assumption could severely misrepresent a vibrating structure,
 which in turn could imply wrong conclusions about its stability.
-Hence, this work is concerned with nonproportionally damped systems. 
 
 Fortunately, if two modes with natural (complex) frequencies 
 $\lambda_j \neq \lambda_i$,
@@ -72,7 +93,7 @@ where the symbol $\ll$ reads "much smaller than",
 then the error introduced by ignoring the coupling between both modes
 is negligible [Hasselman 1976].
 Notice, however, that this relationship is violated
-when the modes are close to each other, and the damping is sufficiently large.
+when the modes are close to each other, or the damping is sufficiently large.
 An interesting analysis and physical reinterpretation of these systems
 was proposed in [Baldelomar 2026].
 
@@ -93,28 +114,10 @@ better reflected the properties of the stability lobes.
 Other systems prone to exhibit significant coupling between modes
 are Tuned Mass Dampers (TMD) because of the proximity between the modes.
 Recently, slender structures modelling tall buildings with TMDs
-located at some points were studied in [Bellos 2025],
-showing a noticeable difference when the couplings are ignored. 
-
+located along the structure were studied in [Bellos 2025],
+showing a noticeable difference when the couplings are ignored.
 In the context of machining,
-mechanisms based on TMDs are used for the suppression of chatter [Muñoa 2015].
-However, commercial software for EMA is not equipped
-with methods to fit nonproportional damping,
-which forces researchers to use inappropriate techniques for this task
-such as peak picking [Hintze 2023] or surrogate models.
-To the best of our knowledge,
-the only program that truly tries to fit nonproportional damping
-is the Structural Dynamics Toolbox (SDT) [Balmes 2019]. 
-
-As part of a more ambitious revision of EMA,
-we developed the open-source Python package Indar
-(this word comes from the Basque word for Force) [Indar 2026].
-Among other innovations,
-this package offers methods to fit nonproportional damping to experimental data;
-see [Ponce-Vanegas 2026] for a more comprehensive description of capabilities.
-However, due to the very challenging nature of these systems,
-Indar does not offer a universal solution yet,
-so continued research is still needed to cover a broader variety of systems.
+TMDs are used for chatter suppression [Muñoa 2015].
 
 ### AI disclaimer
 
@@ -126,75 +129,56 @@ is available at https://github.com/poncev/2027_HSM_damping_estimation.
 The chat sessions are considered raw research data
 and are available upon request before 1 March 2027, when they will be deleted.
 
-## The Indar Package
 
-As part of a broader effort to revisit EMA methodology,
-we developed the open-source Python package Indar [Indar 2026].
-Unlike proprietary commercial software,
-Indar is freely accessible with no paywall restrictions,
-allowing researchers to read, modify,
-and extend the source code according to their specific needs. 
-
-A key distinction of Indar is its native capability
-to handle nonproportional damping systems
-through algorithms specifically designed for this purpose.
-While mainstream commercial EMA software typically forces real mode shapes
-regardless of the underlying damping structure,
-Indar implements robust methods to identify and characterize complex mode shapes
-when the proportional damping assumption is violated. 
-
-For a comprehensive description of Indar's capabilities,
-including advanced pole identification algorithms and leakage-free estimation methods,
-see [Ponce-Vanegas 2026].
-
-## Proportional and Nonproportional Damping
+## Theoretical preliminaries
 
 The standard approach in EMA assumes proportional damping,
-which allows the system to be decoupled into $n$ independent single-DoF oscillators
-using real mode shapes.
+which is equivalent to the possibility of choosing real mode shapes.
 This assumption drastically simplifies the analysis
 and is embedded in most commercial software.
-However, for a system to be truly proportionally damped,
-the complex mode shapes $\Phi$ must satisfy the compatibility condition 
+In general, the mode shapes $\{\mathbf{\varphi}_l\}$ are complex, and
+they must satisfy the compatibility condition
+$$\text{Im}\Big(\sum_l\varphi_{il}\varphi_{jl}\Big) = 0 \quad \text{for all } i, j; \tag{3}$$
+see [Balmes 1997].
+If the mode shapes are real, then
+this condition is trivially satisfied.
+For the mode shapes,
+we use the normalization
+$\lambda^2\Phi^T M \Phi - \Phi^T K \Phi = 2i\lambda$.
 
-$$\text{Im}(\Phi^T \Phi) = 0 \tag{3}$$
+The compatibility condition (3) admits a physical interpretation.
+If the compatibility condition were violated by the mode shapes,
+then the IRF for displacement (also known as receptance)
+would not vanish at time zero, which
+implies that a structure at rest would suffer a finite displacement instantaneously (infinite acceleration) when excited.
+Most software for EMA does not take into account this
+when fitting complex mode shapes.
 
-or equivalently, in element-wise form:
+To fit the mode shapes,
+one must first estimate the poles $\lambda_i$ and amplitudes $A_{ij}^l$ using the IRF $\mathbf{h} = (h_{ij})$, which satisfies
+$$h_{ij}(t) = \sum_l A_{ij}^l e^{\lambda_l t}.$$
+Ideally, the amplitudes are $A_{ij}^l = \varphi_{il}\varphi_{jl}$, but
+this is never the case experimentally.
+To fit the mode shapes (and assuming acceleration is measured),
+we use a loss function based on the Hilbert--Schmidt norm:
+$$\mathcal{L}(\Phi) = \sum_{i,j}\sum_k (1-k/N)\left|\text{Im}\left[\sum_l (A_{ij}^l - \varphi_{il}\varphi_{jl})\lambda_l^2 s_l^k\right]\right|^2, \tag{4}$$
+where $s_l = e^{\lambda_l \Delta t}$ are the discrete-time poles,
+and the summation runs over output nodes $i$, input nodes $j$, and time samples $k$.
+The mode shapes must satisfy the constraints:
+$$\text{Im}\left(\sum_l\varphi_{il}\varphi_{jl}\right) = 0, \quad
+\text{Im}\left(\sum_l \lambda_l\varphi_{il}\varphi_{jl}\right) > 0, \quad
+-\text{Im}\left(\sum_l \lambda_l^2\varphi_{il}\varphi_{jl}\right) > 0, \tag{5}$$
+for all $i$, $j$, where the inequalities are understood as matrix inequalities.
+The first constraint is the compatibility condition (3),
+while the remaining constraints enforce positive definiteness of the reconstructed damping and stiffness matrices.
 
-$$\text{Im}\Big(\sum_l\varphi_{il}\varphi_{jl}\Big) = 0 \quad \text{for all } i, j$$
-
-This condition states that all cross-products between mode shapes
-must be real numbers.
-Physically, it means that all points in the structure vibrate
-in phase or exactly out of phase for each mode—there are no intermediate
-phase relationships that would indicate energy transfer between modes
-during oscillation.
-
-The critical issue is that commercial EMA software typically forces
-real mode shapes onto the identified system
-without verifying whether equation (3) is satisfied.
-When the underlying system exhibits nonproportional damping—violating
-this compatibility condition—forcing real modes can introduce errors
-exceeding 90% in the reconstructed damping matrix [Ponce-Vanegas 2026].
-The only exception we are aware of is the Structural Dynamics Toolbox (SDT),
-which explicitly addresses nonproportional damping [Balmes 2019].
-
-Nonproportional damping becomes particularly relevant in several machining scenarios:
-systems with Tuned Mass Dampers where modes are closely spaced,
-multi-cutter configurations where fixture damping couples modes [Reith 2017],
-and whenever the Hasselman violation criterion (2) is met.
-In these cases, forcing proportional damping leads to inaccurate stability predictions.
-
-Indar addresses this limitation by fitting complex mode shapes
-that naturally respect nonproportionality.
-The identification algorithm minimizes the weighted residual loss function:
-
-$$\mathcal{L}(\Phi, \Lambda) = \sum_{k=1}^{N_f} w_k \left\| H(\omega_k) - \Phi \text{diag}\left(\frac{1}{\Lambda^2 - \omega_k^2}\right) \Phi^T \right\|_F^2 \tag{4}$$
-
-where $H(\omega_k)$ are the measured frequency response functions,
-$\Lambda$ contains the complex natural frequencies, and $w_k$ are weights.
-This approach allows the mode shapes to assume complex values when needed,
-capturing the true dynamics of nonproportionally damped systems.
+Once the amplitudes $A_{ij}^l$ are estimated,
+the real mode shapes are estimated by minimization of (4) using dual annealing,
+a global solver that refines candidate minima using gradient-based algorithms.
+After fitting the real modes,
+complex mode shapes are locally searched using a Trust-Region constrained method.
+The theoretical details behind the optimization
+can be found in [Ponce-Vanegas 2026, Ponce-Vanegas 2026b].
 
 ## Stability Analysis
 
@@ -266,13 +250,13 @@ This method is implemented in Indar and respects the compatibility condition (eq
 Both reconstructed systems were used to compute stability lobe diagrams
 using the approach described in the previous section.
 
-Figure X compares the frequency response functions (FRF)
+Figure 1 compares the frequency response functions (FRF)
 reconstructed from both methods against the true system response.
 The most striking difference appears in the damper FRF (coordinate 2),
 where forcing real mode shapes produces visible discrepancies from the true response.
 The tool tip FRF (coordinate 1) also shows deviations, though less pronounced.
 
-Figure Y presents the stability lobe diagrams
+Figure 2 presents the stability lobe diagrams
 in the low spindle speed range (50-600 rad/s),
 where the pocket structure near the natural frequencies is most pronounced.
 In this critical region,
@@ -326,9 +310,9 @@ and co-funded by the Hungarian Academy of Sciences (MTA).
 
 [Baldelomar 2026] Baldelomar, L. M., et al. Understanding modal interactions in non-classically damped linear oscillators with closely spaced modes. Journal of Sound and Vibration, 2026, Vol. 638, pp 119818. ISSN 0022-460X
 
-[Balmes 2019] Balmes, E., et al. Structural Dynamics Toolbox User’s Guide. Paris: SDTools, 2019. Available at www.sdtools.com 
+[Balmes 1997] Balmes, E. New results on the identification of normal modes from experimental complex modes. Mechanical Systems and Signal Processing, 1997, Vol. 11, No. 2, pp 229-243. ISSN 0888-3270
 
- 
+[Balmes 2019] Balmes, E., et al. Structural Dynamics Toolbox User's Guide. Paris: SDTools, 2019. Available at www.sdtools.com
 
 [Bellos 2025] Bellos, J., et al. Theoretical evaluation and experimental validation of an innovative dynamic analysis method for combined structures with Tuned Mass Dampers. In: M. Papadrakakis and M. Fragiadakis, eds. Proceedings of 10th ECCOMAS Thematic Conference on Computational Methods in Structural Dynamics and Earthquake Engineering, Rhodes Island, 15-18 June, 2025. Athens: National Technical University of Athens, pp 5562-5576. ISBN 978-618-5827-06-9
 
@@ -351,6 +335,8 @@ and co-funded by the Hungarian Academy of Sciences (MTA).
 [Pawade 2008] Pawade, R. S., Joshi, S. S. and Brahmankar, P. K. Effect of machining parameters and cutting edge geometry on surface integrity of high-speed turned Inconel 718. International Journal of Machine Tools and Manufacture, 2008, Vol. 48, No. 1, pp 15-28. ISSN 0890-6955
 
 [Ponce-Vanegas 2026] Ponce-Vanegas, F., et al. Revisiting Experimental Modal Analysis: leakage-free estimation, pole identification, and non-proportional damping. BIRD, 2026. Available at http://hdl.handle.net/20.500.11824/2165
+
+[Ponce-Vanegas 2026b] Ponce-Vanegas, F. On complex mode shapes and their identification. Journal of Physics: Conference Series, 2026, Vol. 3190, No. 1, pp 012009. ISSN 1742-6596
 
 [Reith 2017] Reith, M.J. and Stepan, G. Effect of non-proportional damping on the dynamics and stability of multi-cutter turning systems. International Journal of Machine Tools and Manufacture, June 2017, Vol. 117, pp 23-30. ISSN 0890-6955
 
