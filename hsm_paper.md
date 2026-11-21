@@ -162,7 +162,8 @@ Ideally, the amplitudes are $A_{ij}^l = \varphi_{il}\varphi_{jl}$, but
 this is never the case experimentally.
 To fit the mode shapes (and assuming acceleration is measured),
 we use a loss function based on the Hilbert--Schmidt norm:
-$$\mathcal{L}(\Phi) = \sum_{i,j}\sum_k (1-k/N)\left|\text{Im}\left[\sum_l (A_{ij}^l - \varphi_{il}\varphi_{jl})\lambda_l^2 s_l^k\right]\right|^2, \tag{4}$$
+$$R_{ij}^k = \sum_l (A_{ij}^l - \varphi_{il}\varphi_{jl})\lambda_l^2 s_l^k, \tag{4a}$$
+$$\mathcal{L}(\Phi) = \sum_{i,j}\sum_k (1-k/N)\left|\text{Im}[R_{ij}^k]\right|^2, \tag{4b}$$
 where $s_l = e^{\lambda_l \Delta t}$ are the discrete-time poles,
 and the summation runs over output nodes $i$, input nodes $j$, and time samples $k$.
 The mode shapes must satisfy the constraints:
@@ -173,7 +174,7 @@ for all $i$, $j$, where the inequalities are understood as matrix inequalities.
 The first constraint is the compatibility condition (3),
 while the remaining constraints enforce positive definiteness of the reconstructed damping and stiffness matrices.
 Mode shapes are normalized using the reduced normalization convention:
-$\lambda^2\psi^T M \psi - \psi^T K \psi = 2i\lambda$.
+$\lambda^2\Phi^T M \Phi - \Phi^T K \Phi = 2i\lambda$.
 
 Once the amplitudes $A_{ij}^l$ are estimated,
 the real mode shapes are estimated by minimization of (4) using dual annealing,

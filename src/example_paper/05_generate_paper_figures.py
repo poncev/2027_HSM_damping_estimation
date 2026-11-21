@@ -180,7 +180,7 @@ print("\n" + "-" * 70)
 print("GENERATING FRF COMPARISON FIGURE")
 print("-" * 70)
 
-fig, axes = plt.subplots(2, 1, figsize=(10, 8))
+fig, axes = plt.subplots(2, 1, figsize=(10, 9))
 
 # Input coordinate (always 0, since we have single input on coordinate 0)
 i_in = 0
@@ -198,45 +198,42 @@ for i_out in range(n_out):
     mag_prop_db = 20 * np.log10(np.abs(H_prop_out))
     mag_nonprop_db = 20 * np.log10(np.abs(H_nonprop_out))
     
-    # Plot
+    # Plot - solid lines for estimations, dashed for true (on top)
+    # Use orange for ComplexModes for better contrast with green True
     ax.plot(
-        freq_range, mag_true_db, 'k-',
-        linewidth=2.5, label='True system', zorder=3
+        freq_range, mag_nonprop_db, '-',
+        color='#ff7f0e', linewidth=2.5,
+        label='ComplexModes (non-proportional)', zorder=1
     )
     ax.plot(
-        freq_range, mag_nonprop_db, 'b--',
-        linewidth=1.8, label='ComplexModes (non-proportional)', zorder=2
+        freq_range, mag_prop_db, '-',
+        color='#d62728', linewidth=2.5,
+        label='RealModes (proportional)', zorder=2
     )
     ax.plot(
-        freq_range, mag_prop_db, 'r:',
-        linewidth=2.0, label='RealModes (proportional)', zorder=1
+        freq_range, mag_true_db, '--',
+        color='#2ca02c', linewidth=3.0,
+        label='True system', zorder=3
     )
     
     # Labels and formatting
-    ax.set_ylabel(f'{COORD_LABELS[i_out]} FRF [dB re 1 m/N]', fontsize=11)
-    ax.legend(loc='best', fontsize=9, framealpha=0.9)
+    ax.set_ylabel(f'{COORD_LABELS[i_out]} FRF [dB re 1 m/N]', fontsize=18)
+    ax.legend(loc='best', fontsize=16, framealpha=0.9)
     ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
+    ax.tick_params(axis='both', which='major', labelsize=16)
     
     # Add minor grid
     ax.minorticks_on()
     ax.grid(True, which='minor', alpha=0.15, linestyle=':', linewidth=0.3)
 
 # X-axis label only on bottom plot
-axes[1].set_xlabel('Frequency [Hz]', fontsize=11)
-
-# Overall title
-fig.suptitle(
-    'FRF Comparison: True vs Reconstructed Systems',
-    fontsize=13,
-    fontweight='bold',
-    y=0.995
-)
+axes[1].set_xlabel('Frequency [Hz]', fontsize=18)
 
 plt.tight_layout()
 
 # Save figure
 output_path = IMAGES_DIR / 'paper_frf_comparison.jpg'
-fig.savefig(output_path, dpi=300, bbox_inches='tight', format='jpeg')
+fig.savefig(output_path, dpi=350, bbox_inches='tight', format='jpeg')
 print(f"\nFigure saved to: {output_path}")
 
 # --- Compute and report errors ---
