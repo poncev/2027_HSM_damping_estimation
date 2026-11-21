@@ -310,7 +310,7 @@ print(f"  Omega range: [{omega_min_low:.1f}, {omega_max_low:.1f}] rad/s")
 print(f"  Cutting coefficient Kn: {Kn:.2e} N/m²")
 
 # Create figure for low-speed lobes
-fig_low, ax_low = plt.subplots(figsize=(12, 7))
+fig_low, ax_low = plt.subplots(figsize=(10, 7))
 
 print("\nComputing low-speed stability lobes...")
 print("  True system...")
@@ -327,9 +327,12 @@ _, _, omega_true_low, h_true_low = plot_lobes(
     representation='mechanical'
 )
 ax_low.lines[-1].set_label('True system')
-ax_low.lines[-1].set_color('black')
-ax_low.lines[-1].set_linewidth(2.5)
+ax_low.lines[-1].set_color('#2ca02c')  # Green
+ax_low.lines[-1].set_linewidth(3.0)
+ax_low.lines[-1].set_linestyle('--')
 ax_low.lines[-1].set_zorder(3)
+# Convert to mm
+ax_low.lines[-1].set_ydata(ax_low.lines[-1].get_ydata() * 1000)
 
 print("  Proportional damping (RealModes)...")
 _, _, omega_prop_low, h_prop_low = plot_lobes(
@@ -344,12 +347,13 @@ _, _, omega_prop_low, h_prop_low = plot_lobes(
     ax=ax_low,
     representation='mechanical'
 )
-ax_low.lines[-1].set_label('Proportional damping (RealModes)')
-ax_low.lines[-1].set_color('red')
-ax_low.lines[-1].set_linewidth(2.0)
-ax_low.lines[-1].set_linestyle('--')
-ax_low.lines[-1].set_alpha(0.8)
+ax_low.lines[-1].set_label('Proportional')
+ax_low.lines[-1].set_color('#d62728')  # Red
+ax_low.lines[-1].set_linewidth(2.5)
+ax_low.lines[-1].set_linestyle('-')
 ax_low.lines[-1].set_zorder(2)
+# Convert to mm
+ax_low.lines[-1].set_ydata(ax_low.lines[-1].get_ydata() * 1000)
 
 print("  Non-proportional damping (ComplexModes)...")
 _, _, omega_nonprop_low, h_nonprop_low = plot_lobes(
@@ -364,30 +368,26 @@ _, _, omega_nonprop_low, h_nonprop_low = plot_lobes(
     ax=ax_low,
     representation='mechanical'
 )
-ax_low.lines[-1].set_label('Non-proportional (ComplexModes)')
-ax_low.lines[-1].set_color('blue')
-ax_low.lines[-1].set_linewidth(2.0)
-ax_low.lines[-1].set_linestyle('-.')
-ax_low.lines[-1].set_alpha(0.8)
+ax_low.lines[-1].set_label('Non-proportional')
+ax_low.lines[-1].set_color('#ff7f0e')  # Orange
+ax_low.lines[-1].set_linewidth(2.5)
+ax_low.lines[-1].set_linestyle('-')
 ax_low.lines[-1].set_zorder(1)
+# Convert to mm
+ax_low.lines[-1].set_ydata(ax_low.lines[-1].get_ydata() * 1000)
 
 # Format low-speed plot
-ax_low.set_xlabel(r'Spindle speed $\Omega$ [rad/s]', fontsize=13)
-ax_low.set_ylabel('Chip thickness $h$ [m]', fontsize=13)
-ax_low.set_title(
-    'Stability Lobe Diagram: Pocket Structure at Low Speeds',
-    fontsize=14,
-    fontweight='bold',
-    pad=15
-)
-ax_low.legend(loc='upper right', fontsize=10, framealpha=0.95, ncol=1)
-ax_low.grid(True, alpha=0.3, linestyle=':', linewidth=0.5)
+ax_low.set_xlabel(r'Spindle speed $\Omega$ [rad/s]', fontsize=18)
+ax_low.set_ylabel('Chip thickness $h$ [mm]', fontsize=18)
+ax_low.legend(loc='upper left', fontsize=16, framealpha=0.9)
+ax_low.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
 ax_low.set_xlim((omega_min_low, omega_max_low))
-ax_low.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+ax_low.set_ylim((1, 7))
+ax_low.tick_params(axis='both', which='major', labelsize=16)
 
 # Save low-speed figure
 lobes_output_low = IMAGES_DIR / '03_stability_lobes_low_speed.jpg'
-fig_low.savefig(lobes_output_low, dpi=300, bbox_inches='tight')
+fig_low.savefig(lobes_output_low, dpi=350, bbox_inches='tight', format='jpeg')
 print(f"\nLow-speed stability lobes saved to: {lobes_output_low}")
 
 print("\n" + "=" * 70)
