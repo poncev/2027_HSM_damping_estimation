@@ -377,7 +377,7 @@ print("-" * 70)
 # Fixed omega range for rich lobe visualization
 # Lower speeds show characteristic lobe "pockets" where Omega ≈ omega_c / k
 omega_min = 100.0   # rad/s - low speed regime
-omega_max = 2500.0  # rad/s - up to natural frequency range
+omega_max = 800.0  # rad/s - up to natural frequency range
 
 print(f"\nStability lobe parameters:")
 print(f"  Omega range: [{omega_min:.1f}, {omega_max:.1f}] rad/s")
