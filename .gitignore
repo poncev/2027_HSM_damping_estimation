@@ -1,1 +1,12 @@
 .vscode/
+.env
+local.md
+*__pycache__/
+.pytest_cache/
+*.doc
+*.docx
+HSM_Template*
+
+# Example paper outputs
+src/example_paper/data/
+images/
